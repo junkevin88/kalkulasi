@@ -1,5 +1,5 @@
 {
-  "name": "@neabyte/idx-api",
+  "name": "@junkevin/idx-api",
   "type": "module",
   "license": "MIT",
   "exports": "./src/index.ts",
