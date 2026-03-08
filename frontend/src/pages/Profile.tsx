@@ -5,7 +5,7 @@ import { RelationGraph } from '../components/RelationGraph'
 import { escapeHtml } from '../utils/format'
 import { formatDate } from '../utils/format'
 
-const API = ''
+const API = import.meta.env.VITE_API ?? ''
 
 function TableSection({
   title,

@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import * as d3 from 'd3'
 import { api, type HeatmapEntry } from '../api/client'
+
+const API = import.meta.env.VITE_API ?? ''
 import { escapeHtml } from '../utils/format'
 import { useTheme } from '../hooks/useTheme'
 
@@ -184,7 +186,7 @@ export function Heatmap() {
         const logoY = d.y0 + padTop
         const logoX = cx - logoSize / 2
         g.append('image')
-          .attr('href', `/api/img/${code}.svg`)
+          .attr('href', `${API}/api/img/${code}.svg`)
           .attr('x', logoX)
           .attr('y', logoY)
           .attr('width', logoSize)

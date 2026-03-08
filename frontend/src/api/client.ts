@@ -1,4 +1,5 @@
-const API = ''
+/** API base URL. Kosong = same origin. Set VITE_API untuk deploy frontend terpisah (e.g. Vercel → Deno Deploy). */
+const API = import.meta.env.VITE_API ?? ''
 
 export async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   const r = await fetch(`${API}${path}`, { ...options, headers: { Accept: 'application/json', ...options?.headers } })
