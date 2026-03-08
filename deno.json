@@ -87,6 +87,14 @@
     "drizzle-orm": "npm:drizzle-orm@^0.45.1",
     "drizzle-orm/sqlite-core": "npm:drizzle-orm@^0.45.1/sqlite-core"
   },
+  "deploy": {
+    "install": "cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "runtime": {
+      "type": "dynamic",
+      "entrypoint": "web/server.ts"
+    }
+  },
   "publish": {
     "exclude": [
       "*.bench.ts",

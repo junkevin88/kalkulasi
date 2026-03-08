@@ -1,6 +1,11 @@
 {
   "dependencies": {
     "@libsql/client": "^0.17.0",
-    "@libsql/core": "^0.17.0"
+    "@libsql/core": "^0.17.0",
+    "drizzle-orm": "^0.45.1"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.9",
+    "esbuild": "^0.24.0"
   }
 }
