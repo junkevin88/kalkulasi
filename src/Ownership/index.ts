@@ -2,13 +2,10 @@
  * KSEI Ownership module.
  * @description Query shareholder ownership data from local database.
  */
-import { parse } from '@std/csv/parse'
 import { and, desc, eq, like, or } from 'drizzle-orm'
 import * as schemas from '@app/Backend/Schemas/index.ts'
 import Database from '@app/Database.ts'
 import type * as Types from '@app/Ownership/Types.ts'
-
-const CONGLO_MAPPING_URL = new URL(import.meta.resolve('@data/ticker_conglomerate_mapping.csv'))
 
 export default class OwnershipModule {
   /**
@@ -174,18 +171,20 @@ export default class OwnershipModule {
   }
 
   /**
-   * Get conglomerates with ticker count from ticker_conglomerate_mapping.csv.
-   * Supports emitens dengan multiple conglomerate (satu row per pair ticker-conglomerate).
+   * Get conglomerates with ticker count from ticker_conglomerate_mapping table.
+   * Data synced from data/ticker_conglomerate_mapping.csv via deno task conglomerate:sync.
    * @returns List of conglomerates sorted by ticker count descending
    */
   async getConglomerates(): Promise<Types.ConglomerateRow[]> {
-    const content = await Deno.readTextFile(CONGLO_MAPPING_URL)
-    const rows = parse(content, { skipFirstRow: true }) as Record<string, string>[]
+    const rows = await Database.select({
+      code: schemas.tickerConglomerateMapping.code,
+      conglomerate: schemas.tickerConglomerateMapping.conglomerate
+    }).from(schemas.tickerConglomerateMapping)
 
     const byName = new Map<string, Set<string>>()
     for (const r of rows) {
-      const kode = r['Kode']?.trim()
-      const conglo = r['Conglomerate']?.trim()
+      const kode = r.code?.trim()
+      const conglo = r.conglomerate?.trim()
       if (!kode || !conglo) continue
       const set = byName.get(conglo) ?? new Set<string>()
       set.add(kode)

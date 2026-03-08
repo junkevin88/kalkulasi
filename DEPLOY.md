@@ -18,12 +18,9 @@ Panduan singkat deploy aplikasi **Analisis Ordal** (API + frontend React) ke [De
 
    Tanpa `DATABASE_URL`, server akan mencoba pakai `data/database.sqlite` (hanya jalan di lingkungan yang bisa akses file lokal).
 
-2. **Data lain (tetap dari repo)**  
-   Server juga baca dari:
-   - `data/ticker_conglomerate_mapping.csv`
-   - `sample/img/*.svg` (logo emiten)
-
-   Pastikan file-file ini ada di repo.
+2. **Data lain**  
+   - **Conglomerate mapping**: sekarang di DB (tabel `ticker_conglomerate_mapping`). Jalankan `deno task conglomerate:sync` dari lokal (dengan `DATABASE_URL` ke Turso) untuk mengisi dari `data/ticker_conglomerate_mapping.csv`.
+   - **Logo emiten**: server baca dari `sample/img/*.svg` (harus ada di repo).
 
 2. **Build frontend**  
    Konfigurasi di `deno.json` sudah mengatur:
