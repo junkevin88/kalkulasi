@@ -2,13 +2,10 @@
  * KSEI Ownership module.
  * @description Query shareholder ownership data from local database.
  */
-import { parse } from '@std/csv/parse'
 import { and, desc, eq, like, or } from 'drizzle-orm'
 import * as schemas from '@app/Backend/Schemas/index.ts'
 import Database from '@app/Database.ts'
 import type * as Types from '@app/Ownership/Types.ts'
-
-const CONGLO_MAPPING_PATH = new URL('../../data/ticker_conglomerate_mapping.csv', import.meta.url)
 
 export default class OwnershipModule {
   /**
@@ -174,22 +171,27 @@ export default class OwnershipModule {
   }
 
   /**
-   * Get conglomerates with ticker count from ticker_conglomerate_mapping.csv.
-   * Supports emitens with multiple conglomerates (one row per ticker-conglomerate pair).
+   * Get conglomerates with ticker count, aggregated from ksei_ownership table.
+   * Uses distinct ticker codes per conglomerate.
    * @returns List of conglomerates sorted by ticker count descending
    */
   async getConglomerates(): Promise<Types.ConglomerateRow[]> {
-    const content = await Deno.readTextFile(CONGLO_MAPPING_PATH)
-    const rows = parse(content, { skipFirstRow: true }) as Record<string, string>[]
+    const rows = await Database.select({
+      code: schemas.kseiOwnership.code,
+      conglomerate: schemas.kseiOwnership.conglomerate
+    }).from(schemas.kseiOwnership)
+
     const byName = new Map<string, Set<string>>()
     for (const r of rows) {
-      const kode = r['Kode']?.trim()
-      const conglo = r['Conglomerate']?.trim()
+      const kode = r.code?.trim()
+      const conglo = r.conglomerate?.trim()
       if (!kode || !conglo) continue
-      const set = byName.get(conglo) ?? new Set()
+      const existing = byName.get(conglo)
+      const set = existing ?? new Set<string>()
       set.add(kode)
-      byName.set(conglo, set)
+      if (!existing) byName.set(conglo, set)
     }
+
     return Array.from(byName.entries())
       .map(([name, codes]) => ({ name, tickerCount: codes.size }))
       .sort((a, b) => b.tickerCount - a.tickerCount)

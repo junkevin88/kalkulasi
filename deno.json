@@ -62,6 +62,7 @@
     "check": "deno fmt src/ && deno lint src/ && deno check src/",
     "discover": "deno run --allow-net --allow-read --allow-write src/index.ts",
     "sync": "deno run --allow-net --allow-read --allow-write scripts/sync.ts",
+    "company:sync": "deno run --allow-net --allow-read --allow-write scripts/sync-company-profile.ts",
     "ksei:import": "deno run --allow-read --allow-write scripts/import-ksei.ts",
     "ownership:demo": "deno run --allow-read scripts/ownership-demo.ts",
     "web": "deno run --allow-net --allow-read --allow-env --allow-ffi web/server.ts",

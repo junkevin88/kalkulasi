@@ -7,8 +7,12 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { fromFileUrl, join, dirname } from '@std/path'
+import { eq } from 'drizzle-orm'
 import CompanyModule from '@app/Company/index.ts'
 import OwnershipModule from '@app/Ownership/index.ts'
+import Database from '@app/Database.ts'
+import * as schemas from '@app/Backend/Schemas/index.ts'
+import type { CompanyDetailResponse } from '@app/Company/Types.ts'
 
 const ownership = new OwnershipModule()
 const company = new CompanyModule()
@@ -98,6 +102,55 @@ app.get('/api/company/profile/:code', async (c) => {
   const code = c.req.param('code')?.toUpperCase() ?? ''
   if (!code) return c.json({ error: 'Code required' }, 400)
   try {
+    // 1) Coba baca dari database (Turso / SQLite) lebih dulu
+    const [detail] = await Database.select().from(schemas.companyDetail).where(eq(schemas.companyDetail.code, code))
+    if (detail) {
+      const [basic] = await Database.select().from(schemas.companyProfile).where(eq(schemas.companyProfile.code, code))
+      const listingDate =
+        (basic?.listingDate instanceof Date ? basic.listingDate.toISOString() : basic?.listingDate?.toString()) ?? ''
+
+      const parseJson = <T>(value: string | null): T[] => {
+        if (!value) return []
+        try {
+          const parsed = JSON.parse(value)
+          return Array.isArray(parsed) ? (parsed as T[]) : []
+        } catch {
+          return []
+        }
+      }
+
+      const response: CompanyDetailResponse = {
+        profile: {
+          address: detail.address ?? '',
+          bae: detail.bae ?? '',
+          industry: detail.industry ?? '',
+          subIndustri: detail.subIndustry ?? '',
+          email: detail.email ?? '',
+          fax: detail.fax ?? '',
+          businessActivity: detail.businessActivity ?? '',
+          code: code,
+          name: basic?.name ?? '',
+          phone: detail.phone ?? '',
+          website: detail.website ?? '',
+          npwp: detail.npwp ?? '',
+          history: detail.history ?? '',
+          listingDate,
+          board: detail.board ?? '',
+          sector: detail.sector ?? '',
+          subSector: detail.subSector ?? '',
+          status: detail.status ?? ''
+        },
+        secretary: parseJson(detail.secretary),
+        directors: parseJson(detail.directors),
+        commissioners: parseJson(detail.commissioners),
+        committees: parseJson(detail.committees),
+        shareholders: parseJson(detail.shareholders),
+        subsidiaries: parseJson(detail.subsidiaries)
+      }
+      return c.json(response)
+    }
+
+    // 2) Fallback: kalau di DB belum ada, coba hit IDX langsung (untuk lokal / dev)
     const data = await company.getCompanyProfilesDetail(code)
     if (!data) return c.json({ error: 'Not found' }, 404)
     return c.json(data)
